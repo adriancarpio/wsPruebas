@@ -76,7 +76,7 @@ public class RespuestaDatos {
                 statement.execute();
                 respuesta.setCodResponse(statement.getString(iCodResp));
                 respuesta.setMsjResponse(statement.getString(iMsjresp));
-                if (respuesta.getCodResponse().equals("00")) {
+                if (respuesta.getCodResponse().equals("00") && parametros.get(0).equalsIgnoreCase("CG")) {
                     ResultSet rs = (ResultSet) statement.getObject(iCursor);
 
                     //ResultSet rs = (ResultSet) statement.getObject(7);
