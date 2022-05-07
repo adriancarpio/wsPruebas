@@ -13,6 +13,7 @@ import java.util.List;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebService;
+import javax.xml.bind.annotation.XmlElement;
 
 /**
  *
@@ -28,23 +29,38 @@ public class webservice {
     private static String resp = "";
     private Gson gson = new Gson();
     private String res = resp;
+    private static String EmpyString = "";
+    private String error = EmpyString;
+    private String response = EmpyString;
     Writer writer = null;
     NegocioPrueba negocioPrueba = new NegocioPrueba();
 
     @WebMethod(operationName = "operation")
-    public String operation(@WebParam(name = "dtoImput") List<String> parametros) {
+    public String operation(
+            @WebParam(name = "procedimiento") @XmlElement(required = true, nillable = false) String procedimiento,
+            @WebParam(name = "dtoImput") List<String> parametros) {
         //TODO write your implementation code here:
 
         try {
-            respuesta = negocioPrueba.wsRespuesta(parametros);
+            switch (procedimiento) {
+                case "PUB_CRUD_ROL":
+                    respuesta = negocioPrueba.wsRespuesta(parametros);
+                    break;
+                default:
+                    respuesta.setCodResponse("99");
+                    respuesta.setMsjResponse("No existe el procedimiento");
+            }
         } catch (Exception e) {
-
             e.printStackTrace(new PrintWriter(writer));
+            error = writer.toString();
+            respuesta.setCodResponse("99");
+            respuesta.setMsjResponse("Error al realizar la Transacción.");
+            response = gson.toJson(respuesta);
         } finally {
-            res = gson.toJson(respuesta);
+            response = gson.toJson(respuesta);
         }
 
-        return res;
+        return response;
     }
 
 }
