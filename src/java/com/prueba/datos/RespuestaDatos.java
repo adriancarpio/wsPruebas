@@ -5,14 +5,15 @@
  */
 package com.prueba.datos;
 
+import com.graba.log.clases.ClsGrabaLog;
 import com.poll.connection.funciones.FuncionOracle;
 import com.prueba.controler.ClsDatos;
 import com.prueba.controler.Datos;
 import com.prueba.controler.Respuesta;
-import com.prueba.db.conexion.DBConnectionOracleDB;
 import com.prueba.util.EntityMapper;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -30,11 +31,14 @@ public class RespuestaDatos {
     private Respuesta respuesta;
     private Connection cn = null;
     Writer writer = null;
+    private String error = "";
+    private short num = 3;
     private CallableStatement statement;
     private CallableStatement response_statement;
     private FuncionOracle funcionOracle = new FuncionOracle();
-    //private DBConnectionOracleDB dbcodb = new DBConnectionOracleDB();
+    private final ClsGrabaLog ObjLOG = new ClsGrabaLog("wsPruebas");
 
+    //private DBConnectionOracleDB dbcodb = new DBConnectionOracleDB();
     public RespuestaDatos() {
     }
 
@@ -107,13 +111,33 @@ public class RespuestaDatos {
                 } else {
                     respuesta.setCodResponse("99");
                     respuesta.setMsjResponse("Error en  de la BD en el WebService.");
-
                 }
             } else {
-                System.out.println("error en la conexion");
+                respuesta.setCodResponse("99");
+                respuesta.setMsjResponse("Error en [" + "wsRespuesta" + "]  conexión con la base no establecida.");
             }
-        } catch (Exception e) {
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException | SQLException e) {
             e.printStackTrace(new PrintWriter(writer));
+            e.printStackTrace(new PrintWriter(writer));
+            error = writer.toString();
+            respuesta.setCodResponse("99");
+            respuesta.setMsjResponse("Error en [" + "wsRespuesta" + "] ocurrió una excepción: " + e.getMessage());
+            ObjLOG.printmsg(num, getClass().getSimpleName() + " - " + "wsRespuesta", " -" + "CAPA DE DATOS" + "-  Error:  " + error);
+
+        } finally {
+            try {
+                if (cn != null) {
+                    statement.close();
+                    response_statement.close();
+                    funcionOracle.Fnc_CloseConexion(cn);
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace(new PrintWriter(writer));
+                error = writer.toString();
+                respuesta.setCodResponse("99");
+                respuesta.setMsjResponse("Error en [" + "wsRespuesta" + "] ocurrió una excepción");
+                ObjLOG.printmsg(num, getClass().getSimpleName() + " - " + "wsRespuesta", " -" + "CAPA DE DATOS" + "-  ERROR:  " + error);
+            }
         }
         return respuesta;
     }

@@ -6,6 +6,7 @@
 package com.prueba.controler;
 
 import com.google.gson.Gson;
+import com.graba.log.clases.ClsGrabaLog;
 import com.prueba.negocio.NegocioPrueba;
 import java.io.PrintWriter;
 import java.io.Writer;
@@ -28,9 +29,11 @@ public class webservice {
     Respuesta respuesta = new Respuesta();
     private static String resp = "";
     private Gson gson = new Gson();
+    private short num = 3;
     private String res = resp;
     private static String EmpyString = "";
     private String error = EmpyString;
+    private final ClsGrabaLog ObjLOG = new ClsGrabaLog("wsPruebas");
     private String response = EmpyString;
     Writer writer = null;
     NegocioPrueba negocioPrueba = new NegocioPrueba();
@@ -55,9 +58,11 @@ public class webservice {
             error = writer.toString();
             respuesta.setCodResponse("99");
             respuesta.setMsjResponse("Error al realizar la Transacción.");
+            ObjLOG.printmsg(num, getClass().getSimpleName() + " - " + "wsRespuesta", " -" + "CAPA DE PRESENTACION" + "-  ERROR:  " + error);
             response = gson.toJson(respuesta);
         } finally {
             response = gson.toJson(respuesta);
+            ObjLOG.printmsg(num, getClass().getSimpleName() + " - " + "wsRespuesta", " -" + "CAPA DE PRESENTACION" + "-  ERROR:  " + error);
         }
 
         return response;
