@@ -5,6 +5,7 @@
  */
 package com.prueba.datos;
 
+import com.poll.connection.funciones.FuncionOracle;
 import com.prueba.controler.ClsDatos;
 import com.prueba.controler.Datos;
 import com.prueba.controler.Respuesta;
@@ -15,6 +16,7 @@ import java.io.Writer;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import oracle.jdbc.OracleTypes;
@@ -30,7 +32,8 @@ public class RespuestaDatos {
     Writer writer = null;
     private CallableStatement statement;
     private CallableStatement response_statement;
-    private DBConnectionOracleDB dbcodb = new DBConnectionOracleDB();
+    private FuncionOracle funcionOracle = new FuncionOracle();
+    //private DBConnectionOracleDB dbcodb = new DBConnectionOracleDB();
 
     public RespuestaDatos() {
     }
@@ -42,7 +45,8 @@ public class RespuestaDatos {
 
         try {
 
-            cn = dbcodb.getConnection();
+            cn = funcionOracle.Fnc_getConection();
+            //cn = dbcodb.getConnection();
 
             if (cn != null) {
                 statement = cn.prepareCall(sql);
@@ -73,15 +77,17 @@ public class RespuestaDatos {
                 statement.registerOutParameter(iCursor, OracleTypes.CURSOR);
                 statement.registerOutParameter(iCodResp, OracleTypes.VARCHAR);
                 statement.registerOutParameter(iMsjresp, OracleTypes.VARCHAR);
-                statement.execute();
-                respuesta.setCodResponse(statement.getString(iCodResp));
-                respuesta.setMsjResponse(statement.getString(iMsjresp));
-                if (respuesta.getCodResponse().equals("00") && parametros.get(0).equalsIgnoreCase("CG")) {
-                    ResultSet rs = (ResultSet) statement.getObject(iCursor);
+//                statement.execute();
+                response_statement = funcionOracle.execComandQueryParameterOut(cn, "", statement);
+                if (response_statement.getString(iCodResp) != null) {
+                    respuesta.setCodResponse(statement.getString(iCodResp));
+                    respuesta.setMsjResponse(statement.getString(iMsjresp));
+                    if (respuesta.getCodResponse().equals("00") && parametros.get(0).equalsIgnoreCase("CG")) {
+                        ResultSet rs = (ResultSet) statement.getObject(iCursor);
 
-                    //ResultSet rs = (ResultSet) statement.getObject(7);
-                    EntityMapper<ClsDatos> mapeo = new EntityMapper<>();
-                    List<ClsDatos> list = mapeo.mapResultSetToListString(rs, ClsDatos.class);
+                        //ResultSet rs = (ResultSet) statement.getObject(7);
+                        EntityMapper<ClsDatos> mapeo = new EntityMapper<>();
+                        List<ClsDatos> list = mapeo.mapResultSetToListString(rs, ClsDatos.class);
 
 //                    while (rs.next()) {
 //                        Datos bean = new Datos();
@@ -96,7 +102,12 @@ public class RespuestaDatos {
 //                        datos.add(bean);
 //                    }
 //                    respuesta.setData(datos);
-                    respuesta.setData(list);
+                        respuesta.setData(list);
+                    }
+                } else {
+                    respuesta.setCodResponse("99");
+                    respuesta.setMsjResponse("Error en  de la BD en el WebService.");
+
                 }
             } else {
                 System.out.println("error en la conexion");
